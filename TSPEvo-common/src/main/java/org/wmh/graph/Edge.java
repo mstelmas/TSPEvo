@@ -3,10 +3,13 @@ package org.wmh.graph;
 import lombok.Getter;
 
 public class Edge implements Comparable<Edge> {
-
     private final int v;
     private final int w;
     @Getter private final double weight;
+
+    public Edge(final int v, final int w) {
+        this(v, w, 0.0);
+    }
 
     public Edge(final int v, final int w, final double weight) {
         validateVertexNonNegativity(v);
@@ -30,7 +33,6 @@ public class Edge implements Comparable<Edge> {
         } else {
             throw new IllegalArgumentException("Edge does not contain vertex with id: " + vertex);
         }
-
     }
 
     public int compareTo(Edge other) {
