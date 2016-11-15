@@ -1,0 +1,16 @@
+target/
+.classpath
+.project
+.settings
+*.swp
+.idea
+*.iml
+.metadata
+*.ipr
+bin/
+.svn
+*.error
+.mvn/
+mvnw
+mvnw.cmd
+
