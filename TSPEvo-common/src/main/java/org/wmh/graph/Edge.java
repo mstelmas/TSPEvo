@@ -5,13 +5,13 @@ import lombok.Getter;
 public class Edge implements Comparable<Edge> {
     private final int v;
     private final int w;
-    @Getter private final double weight;
+    @Getter private final int weight;
 
     public Edge(final int v, final int w) {
-        this(v, w, 0.0);
+        this(v, w, 0);
     }
 
-    public Edge(final int v, final int w, final double weight) {
+    public Edge(final int v, final int w, final int weight) {
         validateVertexNonNegativity(v);
         validateVertexNonNegativity(w);
         validateEdgeWeight(weight);
@@ -36,7 +36,7 @@ public class Edge implements Comparable<Edge> {
     }
 
     public int compareTo(Edge other) {
-        return Double.compare(this.weight, other.getWeight());
+        return Integer.compare(this.weight, other.getWeight());
     }
 
     private void validateVertexNonNegativity(final int v) {
@@ -45,9 +45,8 @@ public class Edge implements Comparable<Edge> {
         }
     }
 
-    private void validateEdgeWeight(final double weight) {
-        if (Double.isNaN(weight)) {
-            throw new IllegalArgumentException("Weight is NaN");
+    private void validateEdgeWeight(final int weight) {
+        if (weight < 0)
+            throw new IllegalArgumentException("Weight cannot be negative");
         }
-    }
 }
