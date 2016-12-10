@@ -1,6 +1,7 @@
 package org.wmh.graph;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class WeightedUndirectedGraph extends AbstractGraph {
@@ -31,5 +32,20 @@ public class WeightedUndirectedGraph extends AbstractGraph {
     public Iterable<Edge> adj(final int v) {
         validateVertexId(v);
         return adj[v];
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder graphBuffer = new StringBuilder();
+
+        graphBuffer.append(String.format("%d %d\n", this.getV(), this.getE()));
+
+        for (int v = 0; v < getV(); v++) {
+            for (Edge e : adj[v]) {
+                graphBuffer.append(String.format("%d %d %d\n", e.either(), e.other(e.either()), e.getWeight()));
+            }
+        }
+
+        return graphBuffer.toString();
     }
 }
