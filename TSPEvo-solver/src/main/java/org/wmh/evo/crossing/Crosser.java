@@ -13,7 +13,7 @@ public class Crosser<G extends Gene<?, G>, C extends Comparable<? super C>> {
     private final CrossOverStrategy<G> crossOverStrategy;
     private final double crossRate;
 
-    public Population<G, C> cross(final Population<G, C> population) {
+    public Population<G, C> cross(final Population<G, C> population, final long evolutionIteration) {
         final Population<G, C> newPopulation = population.copy();
         final List<Phenotype<G, C>> phenotypes = newPopulation.getPopulation();
 
@@ -24,12 +24,10 @@ public class Crosser<G extends Gene<?, G>, C extends Comparable<? super C>> {
 
                 if (Math.random() <= crossRate) {
                     final Chromosome<G> crossedChromosome = crossOverStrategy.cross(chromosome1, chromosome2);
-                    phenotypes.set(j, phenotypes.get(j).newInstance(crossedChromosome));
+                    phenotypes.set(j, phenotypes.get(j).newInstance(crossedChromosome, evolutionIteration));
                 }
             }
         }
-
-        assert phenotypes.size() == population.size();
         return newPopulation;
     }
 }

@@ -2,9 +2,11 @@ package org.wmh.evo.core;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import java.util.function.Function;
 
+@ToString
 @RequiredArgsConstructor
 public class Phenotype<T extends Gene<?, T>, C extends Comparable<? super C>> implements Comparable<Phenotype<T, C>>, Runnable {
 
@@ -22,6 +24,10 @@ public class Phenotype<T extends Gene<?, T>, C extends Comparable<? super C>> im
     }
 
     public Phenotype<T, C> newInstance(final Chromosome<T> chromosome) {
+        return newInstance(chromosome, generation);
+    }
+
+    public Phenotype<T, C> newInstance(final Chromosome<T> chromosome, final long generation) {
         return new Phenotype<>(fitnessFunction, chromosome, generation);
     }
 

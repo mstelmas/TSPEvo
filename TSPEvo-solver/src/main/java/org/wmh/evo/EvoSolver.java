@@ -18,9 +18,10 @@ import org.wmh.evo.selection.Selector;
 public final class EvoSolver<T extends Gene<?, T>, C extends Comparable<? super C>> {
     public static final double DEFAULT_MUTATION_RATE = 0.1;
     public static final double DEFAULT_CROSSING_RATE = 0.35;
-    private static final int EVOLUTION_ITERATIONS = 200;
+    public static final int DEFAULT_EVOLUTION_ITERATIONS = 200;
 
     private int populationSize;
+    private int evolutionIterations;
 
     private final Mutator<T, C> mutator;
     private final Crosser<T, C> crosser;
@@ -30,16 +31,16 @@ public final class EvoSolver<T extends Gene<?, T>, C extends Comparable<? super 
     public Phenotype<T, C> solve() {
         Population<T, C> currentPopulation = populationGenerator.provide(populationSize);
 
-        for (int i = 0; i < EVOLUTION_ITERATIONS; i++) {
-            currentPopulation = evolve(currentPopulation);
+        for (int i = 0; i < evolutionIterations; i++) {
+            currentPopulation = evolve(currentPopulation, i);
         }
 
         return currentPopulation.getFittest();
     }
 
-    private Population<T, C> evolve(final Population<T, C> population) {
+    private Population<T, C> evolve(final Population<T, C> population, final int evolutionIteration) {
         Population<T, C> offsprings = selector.select(population);
-        offsprings = crosser.cross(offsprings);
+        offsprings = crosser.cross(offsprings, evolutionIteration);
         return mutator.mutate(offsprings);
     }
 
@@ -50,6 +51,7 @@ public final class EvoSolver<T extends Gene<?, T>, C extends Comparable<? super 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class builder<T extends Gene<?, T>, C extends Comparable<? super C>> {
         private int populationSize = 100;
+        private int evolutionIterations = DEFAULT_EVOLUTION_ITERATIONS;
         private Mutator<T, C> mutator = new Mutator<T, C>(new SwapMutation<>(), DEFAULT_MUTATION_RATE);
         private Crosser<T, C> crosser = new Crosser<T, C>(new ModifiedCrossOver<>(), DEFAULT_CROSSING_RATE);
         private Selector<T, C> selector = new Selector<T, C>(new RouletteWheelSelection<>());
@@ -60,6 +62,14 @@ public final class EvoSolver<T extends Gene<?, T>, C extends Comparable<? super 
                 throw new IllegalArgumentException("Population size must be greater than 0");
             }
             this.populationSize = populationSize;
+            return this;
+        }
+
+        public builder<T, C> withEvolutionIterations(final int evolutionIterations) {
+            if (evolutionIterations <= 0) {
+                throw new IllegalArgumentException("Number of evolution iterations must be greater than 0");
+            }
+            this.evolutionIterations = evolutionIterations;
             return this;
         }
 
@@ -88,6 +98,7 @@ public final class EvoSolver<T extends Gene<?, T>, C extends Comparable<? super 
 
             return new EvoSolver<>(
                     populationSize,
+                    evolutionIterations,
                     mutator,
                     crosser,
                     selector,

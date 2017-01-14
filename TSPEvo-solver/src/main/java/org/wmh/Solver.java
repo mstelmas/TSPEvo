@@ -3,12 +3,11 @@ package org.wmh;
 import lombok.NonNull;
 import org.apache.commons.lang3.tuple.Pair;
 import org.wmh.evo.EvoSolver;
-import org.wmh.evo.core.Chromosome;
 import org.wmh.evo.core.Phenotype;
 import org.wmh.evo.crossing.Crosser;
 import org.wmh.evo.crossing.ModifiedCrossOver;
+import org.wmh.evo.mutation.InversionMutation;
 import org.wmh.evo.mutation.Mutator;
-import org.wmh.evo.mutation.SwapMutation;
 import org.wmh.evo.selection.RouletteWheelSelection;
 import org.wmh.evo.selection.Selector;
 import org.wmh.graph.AbstractGraph;
@@ -21,11 +20,12 @@ import org.wmh.tsp.domain.RandomTspPopulationProvider;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static java.util.stream.Collectors.toList;
+
 public class Solver {
-    public static final int SOLVER_ITERATIONS = 20;
+    public static final int SOLVER_ITERATIONS = 100;
 
     // TODO: "Custom" executor service
     public static void main(String[] args) throws Exception {
@@ -35,11 +35,11 @@ public class Solver {
 
         final List<CompletableFuture<Phenotype<City, Double>>> solutionFutures = IntStream.range(0, SOLVER_ITERATIONS)
                 .mapToObj(i -> CompletableFuture.supplyAsync(() -> solve(graph)))
-                .collect(Collectors.toList());
+                .collect(toList());
 
-        final Pair<Chromosome<City>, Long> optimalSolution = asProcessedSequence(solutionFutures)
+        final Pair<Phenotype<City, Double>, Long> optimalSolution = asProcessedSequence(solutionFutures)
                 .thenApply(phenotypes -> phenotypes.stream()
-                        .map(solution -> Pair.of(solution.getChromosome(), tspEvoHelper.calculatePathLength(solution.getChromosome())))
+                        .map(solution -> Pair.of(solution, tspEvoHelper.calculatePathLength(solution.getChromosome())))
                         .sorted(Comparator.comparing(Pair::getValue))
                         .findFirst()
                         .get()
@@ -53,16 +53,17 @@ public class Solver {
         return CompletableFuture.allOf(taskFutures.toArray(new CompletableFuture[taskFutures.size()]))
                 .thenApply(v -> taskFutures.stream()
                         .map(CompletableFuture::join)
-                        .collect(Collectors.toList())
+                        .collect(toList())
                 );
     }
 
     private static Phenotype<City, Double> solve(@NonNull final AbstractGraph graph) {
         return EvoSolver.<City, Double>builder()
-                .withPopulationSize(50)
+                .withPopulationSize(100)
+                .withEvolutionIterations(150)
                 .withSelection(new Selector<>(new RouletteWheelSelection<City, Double>()))
-                .withCrossover(new Crosser<>(new ModifiedCrossOver<City>(), 0.35))
-                .withMutation(new Mutator<>(new SwapMutation<City>(), 0.1))
+                .withCrossover(new Crosser<>(new ModifiedCrossOver<City>(), 0.65))
+                .withMutation(new Mutator<>(new InversionMutation<City>(), 0.01))
                 .withPopulationGenerator(new RandomTspPopulationProvider<>(graph))
                 .build()
                 .solve();
