@@ -2,8 +2,8 @@ package org.wmh.tsp.domain;
 
 import lombok.NonNull;
 import lombok.ToString;
-import org.wmh.evo.core.AbstractChromosome;
-import org.wmh.evo.core.Chromosome;
+import org.wmh.evo.core.domain.AbstractChromosome;
+import org.wmh.evo.core.domain.Chromosome;
 
 import java.util.List;
 

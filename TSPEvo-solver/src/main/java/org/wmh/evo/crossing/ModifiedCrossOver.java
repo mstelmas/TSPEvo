@@ -1,33 +1,24 @@
 package org.wmh.evo.crossing;
 
-import org.wmh.evo.core.Chromosome;
-import org.wmh.evo.core.Gene;
+import org.wmh.evo.core.domain.Chromosome;
+import org.wmh.evo.core.domain.Gene;
 
-import java.util.*;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-//TODO: refactor!
 public class ModifiedCrossOver<G extends Gene<?, G>> implements CrossOverStrategy<G> {
-    private static final Random random = new Random();
 
     @Override
-    public Chromosome<G> cross(Chromosome<G> chromosome1, Chromosome<G> chromosome2) {
-        final int size = chromosome1.getGenes().size();
-        final int cutpoint = random.nextInt(size);
-        final List<G> genes = new ArrayList<>(chromosome1.getGenes());
+    public Chromosome<G> cross(final Chromosome<G> chromosome1, final Chromosome<G> chromosome2) {
+        final int cutpoint = ThreadLocalRandom.current().nextInt(chromosome1.length() - 1);
 
-        Map<G, Boolean> map = new HashMap<>();
+        final List<G> collect = Stream.concat(
+                chromosome1.stream().limit(cutpoint + 1),
+                chromosome2.stream()
+        ).distinct().collect(Collectors.toList());
 
-        for (int i = 0; i < cutpoint; i++) {
-            map.put(chromosome1.getGenes().get(i), true);
-        }
-
-        for (int i = cutpoint, j = 0; (i < size && j < size); j++) {
-            if (map.get(chromosome2.getGenes().get(j)) == null) {
-                genes.set(i++, chromosome2.getGenes().get(j));
-                map.put(chromosome2.getGenes().get(j), true);
-            }
-        }
-
-        return chromosome1.newInstance(genes);
+        return chromosome1.newInstance(collect);
     }
 }

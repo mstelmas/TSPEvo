@@ -1,5 +1,9 @@
 package org.wmh.evo.core;
 
+import org.wmh.evo.core.domain.Gene;
+import org.wmh.evo.core.domain.Phenotype;
+import org.wmh.evo.core.domain.Population;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;

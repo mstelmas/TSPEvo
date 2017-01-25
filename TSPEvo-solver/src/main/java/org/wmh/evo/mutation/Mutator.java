@@ -1,10 +1,10 @@
 package org.wmh.evo.mutation;
 
 import lombok.RequiredArgsConstructor;
-import org.wmh.evo.core.Chromosome;
-import org.wmh.evo.core.Gene;
-import org.wmh.evo.core.Phenotype;
-import org.wmh.evo.core.Population;
+import org.wmh.evo.core.domain.Chromosome;
+import org.wmh.evo.core.domain.Gene;
+import org.wmh.evo.core.domain.Phenotype;
+import org.wmh.evo.core.domain.Population;
 
 import java.util.stream.Collectors;
 

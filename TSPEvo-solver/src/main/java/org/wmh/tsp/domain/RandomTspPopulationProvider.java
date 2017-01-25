@@ -2,10 +2,10 @@ package org.wmh.tsp.domain;
 
 import lombok.NonNull;
 import org.wmh.evo.PopulationProvider;
-import org.wmh.evo.core.Chromosome;
-import org.wmh.evo.core.Gene;
-import org.wmh.evo.core.Phenotype;
-import org.wmh.evo.core.Population;
+import org.wmh.evo.core.domain.Chromosome;
+import org.wmh.evo.core.domain.Gene;
+import org.wmh.evo.core.domain.Phenotype;
+import org.wmh.evo.core.domain.Population;
 import org.wmh.graph.AbstractGraph;
 import org.wmh.tsp.TspFitnessEvaluator;
 

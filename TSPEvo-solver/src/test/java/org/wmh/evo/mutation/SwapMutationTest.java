@@ -2,7 +2,7 @@ package org.wmh.evo.mutation;
 
 import org.junit.Test;
 import org.wmh.evo.TspTestTours;
-import org.wmh.evo.core.AbstractChromosome;
+import org.wmh.evo.core.domain.AbstractChromosome;
 import org.wmh.tsp.domain.Tour;
 
 public class SwapMutationTest {

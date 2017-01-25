@@ -1,52 +1,65 @@
 package org.wmh;
 
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.wmh.evo.EvoSolver;
-import org.wmh.evo.core.Phenotype;
+import org.wmh.evo.core.EvoSolverResults;
+import org.wmh.evo.core.domain.Phenotype;
 import org.wmh.evo.crossing.Crosser;
 import org.wmh.evo.crossing.ModifiedCrossOver;
-import org.wmh.evo.mutation.InversionMutation;
 import org.wmh.evo.mutation.Mutator;
-import org.wmh.evo.selection.RouletteWheelSelection;
+import org.wmh.evo.mutation.SwapMutation;
 import org.wmh.evo.selection.Selector;
+import org.wmh.evo.selection.TournamentSelection;
+import org.wmh.evo.succession.ElitarismSuccession;
 import org.wmh.graph.AbstractGraph;
-import org.wmh.graph.Edge;
-import org.wmh.graph.WeightedUndirectedGraph;
 import org.wmh.tsp.TspEvoHelper;
 import org.wmh.tsp.domain.City;
 import org.wmh.tsp.domain.RandomTspPopulationProvider;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toList;
 
+@Slf4j
 public class Solver {
-    public static final int SOLVER_ITERATIONS = 100;
+    public static final int PARALLEL_SOLVERS = 100;
 
-    // TODO: "Custom" executor service
     public static void main(String[] args) throws Exception {
-//        final AbstractGraph graph = GraphImporter.importGraph("/home/code/TSPEvo/examples/bays29.txt");
-        final AbstractGraph graph = buildSimpleTempGraph();
+        final AbstractGraph graph = GraphImporter.fromFullMatrix("/home/enlighten/code/TSPEvo/examples/bays29.txt");
+//        final AbstractGraph graph = GraphImporter.fromFullMatrix("/home/enlighten/code/TSPEvo/examples/swiss42.txt");
+//        final AbstractGraph graph = GraphImporter.fromLowerHalfMatrix("/home/enlighten/code/TSPEvo/examples/gr120.txt", 120);
+//        final AbstractGraph graph = GraphImporter.fromLowerHalfMatrix("/home/enlighten/code/TSPEvo/examples/pa561.tsp", 561);
+//        final AbstractGraph graph = GraphImporter.fromUpperHalfMatrix("/home/enlighten/code/TSPEvo/examples/si175.txt", 175);
         final TspEvoHelper tspEvoHelper = TspEvoHelper.with(graph);
 
-        final List<CompletableFuture<Phenotype<City, Double>>> solutionFutures = IntStream.range(0, SOLVER_ITERATIONS)
+        final List<CompletableFuture<Phenotype<City, Double>>> solutionFutures = IntStream.range(0, PARALLEL_SOLVERS)
                 .mapToObj(i -> CompletableFuture.supplyAsync(() -> solve(graph)))
                 .collect(toList());
 
         final Pair<Phenotype<City, Double>, Long> optimalSolution = asProcessedSequence(solutionFutures)
-                .thenApply(phenotypes -> phenotypes.stream()
+                .thenApply(phenotypes ->
+                        phenotypes.stream()
                         .map(solution -> Pair.of(solution, tspEvoHelper.calculatePathLength(solution.getChromosome())))
                         .sorted(Comparator.comparing(Pair::getValue))
                         .findFirst()
                         .get()
                 ).get();
 
-        System.out.println(String.format("Optimal TSP path has length: %d", optimalSolution.getValue()));
-        System.out.println(optimalSolution.getKey());
+        log.info("Optimal TSP path has length: {}", optimalSolution.getRight());
+        log.info("{}", optimalSolution.getKey());
+    }
+
+    private static Optional<Phenotype<City, Double>> extractOptimalSolution(final List<EvoSolverResults<City, Double>> solversResults) {
+        return solversResults.stream()
+                .map(EvoSolverResults::getOptimalSolution)
+                .sorted(Phenotype::compareTo)
+                .findFirst();
     }
 
     private static<T> CompletableFuture<List<T>> asProcessedSequence(final List<CompletableFuture<T>> taskFutures) {
@@ -59,31 +72,14 @@ public class Solver {
 
     private static Phenotype<City, Double> solve(@NonNull final AbstractGraph graph) {
         return EvoSolver.<City, Double>builder()
-                .withPopulationSize(100)
-                .withEvolutionIterations(150)
-                .withSelection(new Selector<>(new RouletteWheelSelection<City, Double>()))
-                .withCrossover(new Crosser<>(new ModifiedCrossOver<City>(), 0.65))
-                .withMutation(new Mutator<>(new InversionMutation<City>(), 0.01))
+                .withPopulationSize(2000)
+                .withEvolutionIterations(900)
+                .withSuccessionStrategy(new ElitarismSuccession<>(2))
+                .withSelection(new Selector<>(new TournamentSelection<City, Double>()))
+                .withCrossover(new Crosser<>(new ModifiedCrossOver<City>(), 0.85))
+                .withMutation(new Mutator<>(new SwapMutation<City>(), 0.10))
                 .withPopulationGenerator(new RandomTspPopulationProvider<>(graph))
                 .build()
                 .solve();
-    }
-
-    private static AbstractGraph buildSimpleTempGraph() {
-        final AbstractGraph g = new WeightedUndirectedGraph(5);
-        g.addEdge(new Edge(0, 1, 2));
-        g.addEdge(new Edge(0, 2, 3));
-        g.addEdge(new Edge(0, 3, 2));
-        g.addEdge(new Edge(0, 4, 3));
-
-        g.addEdge(new Edge(1, 2, 3));
-        g.addEdge(new Edge(1, 3, 4));
-        g.addEdge(new Edge(1, 4, 1));
-
-        g.addEdge(new Edge(2, 3, 2));
-        g.addEdge(new Edge(2, 4, 4));
-
-        g.addEdge(new Edge(3, 4, 5));
-        return g;
     }
 }

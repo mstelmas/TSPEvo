@@ -1,8 +1,9 @@
-package org.wmh.evo.core;
+package org.wmh.evo.core.domain;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.wmh.evo.core.PopulationStrategy;
 import org.wmh.evo.core.factories.CopyFactory;
 
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ public class Population<T extends Gene<?, T>, C extends Comparable<? super C>> i
     }
 
     @Override
-    public void sort(Comparator<C> comparator) {
+    public void sort(final Comparator<C> comparator) {
         population.sort((o1, o2) -> comparator.compare(o1.getFitness(), o2.getFitness()));
     }
 

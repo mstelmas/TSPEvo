@@ -2,7 +2,7 @@ package org.wmh.evo.crossing;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
-import org.wmh.evo.core.Chromosome;
+import org.wmh.evo.core.domain.Chromosome;
 import org.wmh.tsp.domain.City;
 import org.wmh.tsp.domain.Tour;
 

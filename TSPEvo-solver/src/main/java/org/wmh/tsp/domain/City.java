@@ -4,7 +4,7 @@ import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import org.wmh.evo.core.Gene;
+import org.wmh.evo.core.domain.Gene;
 
 @ToString
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)

@@ -1,4 +1,4 @@
-package org.wmh.evo.core;
+package org.wmh.evo.core.domain;
 
 import org.wmh.evo.core.factories.CopyFactory;
 

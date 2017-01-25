@@ -1,7 +1,7 @@
 package org.wmh.tsp;
 
 import lombok.NonNull;
-import org.wmh.evo.core.Chromosome;
+import org.wmh.evo.core.domain.Chromosome;
 import org.wmh.graph.AbstractGraph;
 import org.wmh.graph.Edge;
 import org.wmh.tsp.domain.City;
