@@ -20,11 +20,7 @@ public class OrderCrossOver<G extends Gene<?, G>> implements CrossOverStrategy<G
         final Pair<Integer, Integer> indicesBoundToSelect = evoUtils.generatePairOfUniqueIndices(0, genes1.size());
         final List<G> selectedSublistOfGenes = new ArrayList<>(genes1.subList(evoUtils.extractMin(indicesBoundToSelect), evoUtils.extractMax(indicesBoundToSelect) + 1));
 
-
         final List<G> mergedGenes = mergeGenesSublists(genes2, selectedSublistOfGenes, indicesBoundToSelect);
-
-        assert mergedGenes.size() == genes1.size();
-        assert mergedGenes.size() == genes2.size();
 
         return chromosome1.newInstance(mergedGenes);
     }
@@ -39,9 +35,6 @@ public class OrderCrossOver<G extends Gene<?, G>> implements CrossOverStrategy<G
             }
         }
 
-        assert selectedGenes.size() == genes.size();
-
-
         final int lastIndex = genes.size() - evoUtils.extractMin(indicesBoundToSelect);
 
         final ArrayList<G> gs = new ArrayList<>(selectedGenes.subList(lastIndex, genes.size()));
@@ -50,17 +43,15 @@ public class OrderCrossOver<G extends Gene<?, G>> implements CrossOverStrategy<G
     }
 
     private List<G> extractGenesFromCutpoint(final List<G> genes, final int cutpoint) {
-        List<G> rightSubList = new ArrayList<>();
+        final List<G> rightSubList = new ArrayList<>();
         if (cutpoint < genes.size()) {
             rightSubList.addAll(genes.subList(cutpoint, genes.size()));
         }
 
-        final List<G> leftSubList = new ArrayList<G>(genes.subList(0, cutpoint));
+        final List<G> leftSubList = new ArrayList<>(genes.subList(0, cutpoint));
 
-        assert rightSubList.size() + leftSubList.size() == genes.size();
         rightSubList.addAll(leftSubList);
 
-        assert rightSubList.size() == genes.size();
         return rightSubList;
     }
 }

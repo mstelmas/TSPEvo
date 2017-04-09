@@ -14,7 +14,6 @@ public class EvoUtils {
         return Pair.of(randomUniqueIntegers.get(0), randomUniqueIntegers.get(1));
     }
 
-    // todo n check
     public List<Integer> generateUniqueIndices(final int lowerBound, final int upperBound, final int n) {
         return ThreadLocalRandom.current()
                 .ints(lowerBound, upperBound)

@@ -17,25 +17,11 @@ public class RouletteWheelSelection<T extends Gene<?, T>, C extends Number & Com
         final Population<T, C> copiedPopulation = population.copy();
         final double cumulativeFitnessTable[] = buildCumulativeFitnessTable(population);
 
-        final double sum = getFitnessSum(population);
         final List<Phenotype<T, C>> offspringPopulation = IntStream.range(0, population.size())
                 .mapToObj(i -> rouletteWheelPick(copiedPopulation, cumulativeFitnessTable))
                 .collect(Collectors.toList());
 
         return population.newInstance(offspringPopulation);
-    }
-
-    private Phenotype<T, C> rouletteWheelPick2(final Population<T, C> population, final double sum) {
-        final double randomFitness = ThreadLocalRandom.current().nextDouble(sum);
-
-        double partialSum = 0;
-        for (int i = 0; i < population.size(); i++) {
-            partialSum += population.getPhenotypeAt(i).getFitness().doubleValue();
-            if (partialSum >= randomFitness) {
-                return population.getPhenotypeAt(i);
-            }
-        }
-        throw new IllegalStateException("No bum for roulette pick found");
     }
 
     private double[] buildCumulativeFitnessTable(final Population<T, C> population) {
@@ -48,15 +34,6 @@ public class RouletteWheelSelection<T extends Gene<?, T>, C extends Number & Com
         }
 
         return cumulativeFitnessTable;
-    }
-
-    private double getFitnessSum(final Population<T, C> population) {
-        double sum = 0;
-        for (int i = 0; i < population.size(); i++) {
-            sum += population.getPhenotypeAt(i).getFitness().doubleValue();
-        }
-
-        return sum;
     }
 
     private Phenotype<T, C> rouletteWheelPick(final Population<T, C> population, final double[] cumulativeFitnessTable) {

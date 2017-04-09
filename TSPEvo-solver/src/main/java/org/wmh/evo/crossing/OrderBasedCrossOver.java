@@ -35,9 +35,6 @@ public class OrderBasedCrossOver<G extends Gene<?, G>> implements CrossOverStrat
                 genes2.set(i, selectedElementsIterator.next());
             }
         }
-
-
-        assert genes2.size() == chromosome1.length();
         return chromosome1.newInstance(genes2);
     }
 }

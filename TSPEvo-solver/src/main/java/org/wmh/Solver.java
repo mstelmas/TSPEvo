@@ -4,7 +4,6 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.wmh.evo.EvoSolver;
-import org.wmh.evo.core.EvoSolverResults;
 import org.wmh.evo.core.domain.Phenotype;
 import org.wmh.evo.crossing.Crosser;
 import org.wmh.evo.crossing.ModifiedCrossOver;
@@ -20,7 +19,6 @@ import org.wmh.tsp.domain.RandomTspPopulationProvider;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
 
@@ -28,14 +26,10 @@ import static java.util.stream.Collectors.toList;
 
 @Slf4j
 public class Solver {
-    public static final int PARALLEL_SOLVERS = 100;
+    public static final int PARALLEL_SOLVERS = 1;
 
     public static void main(String[] args) throws Exception {
-        final AbstractGraph graph = GraphImporter.fromFullMatrix("/home/enlighten/code/TSPEvo/examples/bays29.txt");
-//        final AbstractGraph graph = GraphImporter.fromFullMatrix("/home/enlighten/code/TSPEvo/examples/swiss42.txt");
-//        final AbstractGraph graph = GraphImporter.fromLowerHalfMatrix("/home/enlighten/code/TSPEvo/examples/gr120.txt", 120);
-//        final AbstractGraph graph = GraphImporter.fromLowerHalfMatrix("/home/enlighten/code/TSPEvo/examples/pa561.tsp", 561);
-//        final AbstractGraph graph = GraphImporter.fromUpperHalfMatrix("/home/enlighten/code/TSPEvo/examples/si175.txt", 175);
+        final AbstractGraph graph = GraphImporter.fromFullMatrix("examples/bays29.txt");
         final TspEvoHelper tspEvoHelper = TspEvoHelper.with(graph);
 
         final List<CompletableFuture<Phenotype<City, Double>>> solutionFutures = IntStream.range(0, PARALLEL_SOLVERS)
@@ -55,13 +49,6 @@ public class Solver {
         log.info("{}", optimalSolution.getKey());
     }
 
-    private static Optional<Phenotype<City, Double>> extractOptimalSolution(final List<EvoSolverResults<City, Double>> solversResults) {
-        return solversResults.stream()
-                .map(EvoSolverResults::getOptimalSolution)
-                .sorted(Phenotype::compareTo)
-                .findFirst();
-    }
-
     private static<T> CompletableFuture<List<T>> asProcessedSequence(final List<CompletableFuture<T>> taskFutures) {
         return CompletableFuture.allOf(taskFutures.toArray(new CompletableFuture[taskFutures.size()]))
                 .thenApply(v -> taskFutures.stream()
@@ -73,7 +60,7 @@ public class Solver {
     private static Phenotype<City, Double> solve(@NonNull final AbstractGraph graph) {
         return EvoSolver.<City, Double>builder()
                 .withPopulationSize(2000)
-                .withEvolutionIterations(900)
+                .withEvolutionIterations(600)
                 .withSuccessionStrategy(new ElitarismSuccession<>(2))
                 .withSelection(new Selector<>(new TournamentSelection<City, Double>()))
                 .withCrossover(new Crosser<>(new ModifiedCrossOver<City>(), 0.85))

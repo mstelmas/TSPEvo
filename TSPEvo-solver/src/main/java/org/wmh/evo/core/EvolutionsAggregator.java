@@ -17,8 +17,6 @@ public class EvolutionsAggregator<T extends Gene<?, T>, C extends Comparable<? s
             throw new IllegalStateException("Stage number cannot be negative");
         }
 
-        getEvolutionAtStage(stage).ifPresent(es -> System.out.println("Evolution at stage: " + stage + " is present. It will be overwritten"));
-
         evolutionStages.put(stage, evolutionStage);
     }
 

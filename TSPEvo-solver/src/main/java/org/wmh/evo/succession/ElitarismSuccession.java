@@ -15,20 +15,19 @@ public class ElitarismSuccession<T extends Gene<?, T>, C extends Number & Compar
     @Override
     public Population<T, C> join(final Population<T, C> initialPopulation, final Population<T, C> offspringsPopulation) {
 
-        final List<Phenotype<T, C>> collect1 = initialPopulation.stream()
+        final List<Phenotype<T, C>> kBestFromInitialPopulation = initialPopulation.stream()
                 .sorted()
                 .limit(k)
                 .collect(Collectors.toList());
 
-        final List<Phenotype<T, C>> collect = offspringsPopulation.stream()
+        final List<Phenotype<T, C>> offspringsWithoutKWorst = offspringsPopulation.stream()
                 .sorted()
                 .limit(initialPopulation.size() - k)
                 .collect(Collectors.toList());
 
 
-        collect1.addAll(collect);
+        kBestFromInitialPopulation.addAll(offspringsWithoutKWorst);
 
-
-        return initialPopulation.newInstance(collect1);
+        return initialPopulation.newInstance(kBestFromInitialPopulation);
     }
 }

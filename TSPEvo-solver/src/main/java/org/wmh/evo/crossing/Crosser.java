@@ -33,8 +33,6 @@ public class Crosser<G extends Gene<?, G>, C extends Comparable<? super C>> {
             }
         }
 
-//        assert population.size() == phenotypes.size();
-
         return population.newInstance(phenotypes);
     }
 
@@ -49,41 +47,7 @@ public class Crosser<G extends Gene<?, G>, C extends Comparable<? super C>> {
     private Pair<Chromosome<G>, Chromosome<G>> doubleCrossParentChromosomes(final Chromosome<G> parentChromosome1, final Chromosome<G> parentChromosome2) {
         return Pair.of(
                 crossOverStrategy.cross(parentChromosome1, parentChromosome2),
-                crossOverStrategy.cross(parentChromosome1, parentChromosome2)
+                crossOverStrategy.cross(parentChromosome2, parentChromosome1)
         );
     }
-
-//    public Population<G, C> cross(final Population<G, C> population, final long evolutionIteration) {
-//        final Population<G, C> newPopulation = population.copy();
-//        final List<Phenotype<G, C>> phenotypes = newPopulation.getPopulation();
-//
-//        Collections.shuffle(phenotypes, ThreadLocalRandom.current());
-//
-//        final List<Phenotype<G, C>> result = new ArrayList<>();
-//
-//        final Iterator<Phenotype<G, C>> iterator = phenotypes.iterator();
-//
-//        while (iterator.hasNext()) {
-//            final Phenotype<G, C> parent1 = iterator.next();
-//
-//            if (iterator.hasNext()) {
-//                final Phenotype<G, C> parent2 = iterator.next();
-//
-//                if (Math.random() <= crossRate) {
-//                    result.add(parent1.newInstance(crossOverStrategy.cross(parent1.getChromosome(), parent2.getChromosome()), evolutionIteration));
-//                    result.add(parent1.newInstance(crossOverStrategy.cross(parent2.getChromosome(), parent1.getChromosome()), evolutionIteration));
-//                } else {
-//                    result.add(parent1);
-//                    result.add(parent2);
-//                }
-//
-//            } else {
-//                result.add(parent1);
-//            }
-//        }
-//
-//        assert result.size() == phenotypes.size();
-//
-//        return newPopulation.newInstance(result);
-//    }
 }

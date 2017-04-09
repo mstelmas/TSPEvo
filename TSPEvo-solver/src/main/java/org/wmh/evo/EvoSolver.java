@@ -1,7 +1,9 @@
 package org.wmh.evo;
 
-import lombok.*;
-import org.wmh.evo.core.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import org.wmh.evo.core.domain.Gene;
 import org.wmh.evo.core.domain.Phenotype;
 import org.wmh.evo.core.domain.Population;
@@ -29,31 +31,13 @@ public final class EvoSolver<T extends Gene<?, T>, C extends Number & Comparable
     private final SuccessionStrategy<T, C> successionStrategy;
     private final PopulationProvider<T, C> populationGenerator;
 
-    private final EvoSolverResults<T, C> evoSolverResults = new EvoSolverResults<>(this);
-
-//    public EvoSolverResults<T, C> solve() {
-//        Population<T, C> currentPopulation = populationGenerator.provide(populationSize);
-//
-//        for (int i = 0; i < evolutionIterations; i++) {
-//            final Population<T, C> evolvedPopulation = evolve(currentPopulation, i);
-//
-//            evoSolverResults.getEvolutionsAggregator().addEvolutionAtStage(new EvolutionStage<>(i, currentPopulation, evolvedPopulation));
-//
-//            currentPopulation = evolvedPopulation;
-//        }
-//
-//        return evoSolverResults;
-//    }
 
     public Phenotype<T, C> solve() {
         Population<T, C> currentPopulation = populationGenerator.provide(populationSize);
 
         for (int i = 0; i < evolutionIterations; i++) {
             currentPopulation = evolve(currentPopulation, i);
-
 //            evoSolverResults.getEvolutionsAggregator().addEvolutionAtStage(new EvolutionStage<>(i, currentPopulation, evolvedPopulation));
-
-//            currentPopulation = evolvedPopulation;
         }
 
         return currentPopulation.getFittest();
