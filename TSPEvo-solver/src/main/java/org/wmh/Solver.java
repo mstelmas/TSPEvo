@@ -26,7 +26,7 @@ import static java.util.stream.Collectors.toList;
 
 @Slf4j
 public class Solver {
-    public static final int PARALLEL_SOLVERS = 1;
+    public static final int PARALLEL_SOLVERS = 2;
 
     public static void main(String[] args) throws Exception {
         final AbstractGraph graph = GraphImporter.fromFullMatrix("examples/bays29.txt");

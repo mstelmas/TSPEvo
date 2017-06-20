@@ -1,12 +1,16 @@
 package org.wmh.evo;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
+import lombok.*;
+import org.wmh.evo.core.EvolutionParams;
 import org.wmh.evo.core.domain.Gene;
 import org.wmh.evo.core.domain.Phenotype;
 import org.wmh.evo.core.domain.Population;
+import org.wmh.evo.core.factories.EvolutionStrategyFactory;
+import org.wmh.evo.core.listeners.CompletionListener;
+import org.wmh.evo.core.listeners.EvolutionListener;
+import org.wmh.evo.core.listeners.InitializationListener;
+import org.wmh.evo.core.strategies.EvolutionStrategy;
+import org.wmh.evo.core.strategies.EvolutionType;
 import org.wmh.evo.crossing.Crosser;
 import org.wmh.evo.crossing.ModifiedCrossOver;
 import org.wmh.evo.mutation.Mutator;
@@ -16,7 +20,14 @@ import org.wmh.evo.selection.Selector;
 import org.wmh.evo.succession.GenerationSuccession;
 import org.wmh.evo.succession.SuccessionStrategy;
 
-@AllArgsConstructor
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+@Getter
+@Setter
 public final class EvoSolver<T extends Gene<?, T>, C extends Number & Comparable<? super C>> {
     public static final double DEFAULT_MUTATION_RATE = 0.1;
     public static final double DEFAULT_CROSSING_RATE = 0.35;
@@ -25,30 +36,67 @@ public final class EvoSolver<T extends Gene<?, T>, C extends Number & Comparable
     private int populationSize;
     private int evolutionIterations;
 
-    private final Mutator<T, C> mutator;
-    private final Crosser<T, C> crosser;
-    private final Selector<T, C> selector;
-    private final SuccessionStrategy<T, C> successionStrategy;
-    private final PopulationProvider<T, C> populationGenerator;
+    private final EvolutionType evolutionType;
+    private final EvolutionParams<T, C> evolutionParams;
 
+    private PopulationProvider<T, C> populationGenerator;
+    private final EvolutionStrategy<T, C> evolutionStrategy;
+
+    private final List<EvolutionListener> evolutionListeners = new ArrayList<>();
+    private final List<InitializationListener> initializationListeners = new ArrayList<>();
+    private final List<CompletionListener> completionListeners = new ArrayList<>();
+
+    public EvoSolver(final int populationSize, final int evolutionIterations, EvolutionType evolutionType, EvolutionParams<T, C> evolutionParams, PopulationProvider<T, C> populationGenerator, EvolutionStrategy<T, C> evolutionStrategy) {
+        this.populationSize = populationSize;
+        this.evolutionIterations = evolutionIterations;
+        this.evolutionType = evolutionType;
+        this.evolutionParams = evolutionParams;
+        this.populationGenerator = populationGenerator;
+        this.evolutionStrategy = evolutionStrategy;
+    }
 
     public Phenotype<T, C> solve() {
+
+        onInitialization.accept(this);
+
         Population<T, C> currentPopulation = populationGenerator.provide(populationSize);
 
         for (int i = 0; i < evolutionIterations; i++) {
-            currentPopulation = evolve(currentPopulation, i);
-//            evoSolverResults.getEvolutionsAggregator().addEvolutionAtStage(new EvolutionStage<>(i, currentPopulation, evolvedPopulation));
+
+            onBeforeEvolutionListeners.accept(i, currentPopulation);
+
+            currentPopulation = evolutionStrategy.evolve(currentPopulation);
+
+            onAfterEvolutionListeners.accept(i, currentPopulation);
         }
+
+        onCompletion.accept(currentPopulation);
 
         return currentPopulation.getFittest();
     }
 
-    private Population<T, C> evolve(final Population<T, C> population, final int evolutionIteration) {
-        final Population<T, C> offspringPopulation = selector.select(population);
-        final Population<T, C> crossedOffspringPopulation = crosser.cross(offspringPopulation, evolutionIteration);
-        final Population<T, C> mutatedAndCrossedOffspringPopulation = mutator.mutate(crossedOffspringPopulation);
+    private BiConsumer<Integer, Population<T, C>> onBeforeEvolutionListeners = (i, population) ->
+            evolutionListeners.forEach(evolutionListener -> evolutionListener.onBeforeEvolution(i, population));
 
-        return successionStrategy.join(population, mutatedAndCrossedOffspringPopulation);
+    private BiConsumer<Integer, Population<T, C>> onAfterEvolutionListeners = (i, population) ->
+            evolutionListeners.forEach(evolutionListener -> evolutionListener.onAfterEvolution(i, population));
+
+    private Consumer<EvoSolver> onInitialization = evoSolver ->
+            initializationListeners.forEach(initializationListener -> initializationListener.onInit(evoSolver));
+
+    private Consumer<Population<T, C>> onCompletion = population ->
+            completionListeners.forEach(completionListener -> completionListener.onFinish(population));
+
+    public void registerEvolutionListener(@NonNull final EvolutionListener evolutionListener) {
+        evolutionListeners.add(evolutionListener);
+    }
+
+    public void registerInitializationListener(@NonNull final InitializationListener initializationListener) {
+        initializationListeners.add(initializationListener);
+    }
+
+    public void registerCompletionListener(@NonNull final CompletionListener completionListener) {
+        completionListeners.add(completionListener);
     }
 
     public static <T extends Gene<?, T>, C extends Number & Comparable<? super C>> builder<T, C> builder() {
@@ -64,6 +112,9 @@ public final class EvoSolver<T extends Gene<?, T>, C extends Number & Comparable
         private Selector<T, C> selector = new Selector<T, C>(new RouletteWheelSelection<>());
         private SuccessionStrategy<T, C> successionStrategy = new GenerationSuccession<>();
         private PopulationProvider<T, C> populationGenerator = null;
+        private EvolutionType evolutionType = EvolutionType.GENETIC_ALGORITHM;
+        private Integer mi = null;
+        private Integer lambda = null;
 
         public builder<T, C> withPopulationSize(final int populationSize) {
             if (populationSize <= 0) {
@@ -106,24 +157,43 @@ public final class EvoSolver<T extends Gene<?, T>, C extends Number & Comparable
             return this;
         }
 
+        public builder<T, C> withEvolutionType(@NonNull final EvolutionType evolutionType) {
+            this.evolutionType = evolutionType;
+            return this;
+        }
+
+        public builder<T, C> withMi(@NonNull final Integer mi) {
+            this.mi = mi;
+            return this;
+        }
+
+        public builder<T, C> withLambda(@NonNull final Integer lambda) {
+            this.lambda = lambda;
+            return this;
+        }
+
         public EvoSolver<T, C> build() {
-            validateConstraints();
+            final EvolutionParams<T, C> evolutionParams = evolutionParamsSupplier.get();
 
             return new EvoSolver<>(
                     populationSize,
                     evolutionIterations,
-                    mutator,
-                    crosser,
-                    selector,
-                    successionStrategy,
-                    populationGenerator
+                    evolutionType,
+                    evolutionParams,
+                    populationGenerator,
+                    EvolutionStrategyFactory.build(evolutionType, evolutionParams)
             );
         }
 
-        private void validateConstraints() {
-            if (populationGenerator == null) {
-                throw new IllegalStateException("Initial population generator has not been provided!");
-            }
-        }
+        private Supplier<EvolutionParams<T, C>> evolutionParamsSupplier = () -> {
+            final EvolutionParams<T, C> evolutionParams = new EvolutionParams<>();
+            evolutionParams.setCrosser(crosser);
+            evolutionParams.setMutator(mutator);
+            evolutionParams.setSelector(selector);
+            evolutionParams.setSuccessionStrategy(successionStrategy);
+            evolutionParams.setMi(mi);
+            evolutionParams.setLambda(lambda);
+            return evolutionParams;
+        };
     }
 }

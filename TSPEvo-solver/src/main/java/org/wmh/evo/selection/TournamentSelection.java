@@ -13,9 +13,14 @@ public class TournamentSelection <T extends Gene<?, T>, C extends Number & Compa
 
     @Override
     public Population<T, C> select(final Population<T, C> population) {
+        return select(population, population.size());
+    }
+
+    @Override
+    public Population<T, C> select(final Population<T, C> population, final int size) {
         final Population<T, C> copiedPopulation = population.copy();
 
-        final List<Phenotype<T, C>> offspringPopulation = IntStream.range(0, population.size())
+        final List<Phenotype<T, C>> offspringPopulation = IntStream.range(0, size)
                 .mapToObj(i -> tournamentPick(copiedPopulation))
                 .collect(Collectors.toList());
 
@@ -31,3 +36,4 @@ public class TournamentSelection <T extends Gene<?, T>, C extends Number & Compa
         return phenotype1.getFitness().compareTo(phenotype2.getFitness()) >= 0 ? phenotype1 : phenotype2;
     }
 }
+
